@@ -111,6 +111,8 @@ func scardTransmit(card uintptr, proto Protocol, cmd []byte, rsp []byte) (uint32
 	switch proto {
 	case ProtocolT0, ProtocolT1:
 		sendpci.dwProtocol = C.ulong(proto)
+	case ProtocolUndefined:
+		sendpci.dwProtocol = C.ulong(4) // direct
 	default:
 		panic("unknown protocol")
 	}
