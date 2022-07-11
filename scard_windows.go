@@ -139,7 +139,7 @@ func scardTransmit(card uintptr, proto Protocol, cmd []byte, rsp []byte) (uint32
 	case ProtocolT1:
 		sendpci = scardIoReqT1
 	default:
-		panic("unknown protocol")
+		panic(fmt.Sprintf("unknown protocol %d", proto))
 	}
 
 	r, _, _ := procTransmit.Call(card, sendpci, uintptr(unsafe.Pointer(&cmd[0])), uintptr(len(cmd)), uintptr(0), uintptr(unsafe.Pointer(&rsp[0])), uintptr(unsafe.Pointer(&rspLen)))
