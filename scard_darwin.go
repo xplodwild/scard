@@ -1,3 +1,4 @@
+//go:build darwin
 // +build darwin
 
 package scard
@@ -9,6 +10,7 @@ package scard
 import "C"
 
 import (
+	"sync"
 	"unsafe"
 )
 
@@ -19,6 +21,10 @@ func (e Error) Error() string {
 // Version returns the libpcsclite version string
 func Version() string {
 	return C.PCSCLITE_VERSION_NUMBER
+}
+
+func scardCtlCode(code uint16) uint32 {
+	return 0x42000000 + uint32(code)
 }
 
 func scardEstablishContext(scope Scope, reserved1, reserved2 uintptr) (uintptr, Error) {
@@ -187,6 +193,7 @@ type scardReaderState struct {
 }
 
 var pinned = map[string]*strbuf{}
+var mutex sync.Mutex
 
 func (rs *ReaderState) toSys() (scardReaderState, error) {
 	var sys scardReaderState
@@ -195,7 +202,11 @@ func (rs *ReaderState) toSys() (scardReaderState, error) {
 	if err != nil {
 		return scardReaderState{}, err
 	}
+
+	mutex.Lock()
 	pinned[rs.Reader] = &creader
+	mutex.Unlock()
+
 	sys.szReader = uintptr(creader.ptr())
 	sys.dwCurrentState = uint32(rs.CurrentState)
 	sys.cbAtr = uint32(len(rs.Atr))
